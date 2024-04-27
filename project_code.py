@@ -2,9 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
 import soundfile as sf
+from scipy.signal import welch
 
 # Read the audio file and get its data and sample rate
-data, samplerate = sf.read('Breake_Room.wav')
+data, samplerate = sf.read('Alla_magna.wav')
 
 # Calculate the duration of the audio in seconds
 duration = len(data) / samplerate
@@ -76,7 +77,6 @@ rt20 = (t[index_of_max_less_5] - t[index_of_max_less_25])
 
 plt.grid()
 plt.show()
-
 rt60 = 3 * rt20
 
 print(f'The RT60 reverb time at freq {int(target_frequency)}Hz is: {round(abs(rt60), 2)} seconds')
@@ -96,5 +96,75 @@ plt.xlabel('Time')
 plt.ylabel('Amplitude')
 plt.title('Sine Wave')
 plt.grid(True)
+plt.show()
+
+frequencies, power = welch(data, samplerate, nperseg=4096)
+
+# Define frequency bands for low, mid, and high frequencies
+low_band = (20, 250)   # Low frequency band (Hz)
+mid_band = (250, 2000) # Mid frequency band (Hz)
+high_band = (2000, 20000) # High frequency band (Hz)
+
+# Calculate the corresponding indices for frequency bands
+low_band_indices = np.where(np.logical_and(frequencies >= low_band[0], frequencies <= low_band[1]))[0]
+mid_band_indices = np.where(np.logical_and(frequencies >= mid_band[0], frequencies <= mid_band[1]))[0]
+high_band_indices = np.where(np.logical_and(frequencies >= high_band[0], frequencies <= high_band[1]))[0]
+
+# Extract power values for each frequency band
+power_low = power[low_band_indices]
+power_mid = power[mid_band_indices]
+power_high = power[high_band_indices]
+
+# Plot power spectral density for each frequency band
+plt.figure(figsize=(10, 6))
+
+# Plot for low frequencies
+plt.subplot(3, 1, 1)
+plt.plot(frequencies[low_band_indices], power_low)
+plt.title('Power Spectral Density - Low Frequencies')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Power')
+
+# Plot for mid frequencies
+plt.subplot(3, 1, 2)
+plt.plot(frequencies[mid_band_indices], power_mid)
+plt.title('Power Spectral Density - Mid Frequencies')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Power')
+
+# Plot for high frequencies
+plt.subplot(3, 1, 3)
+plt.plot(frequencies[high_band_indices], power_high)
+plt.title('Power Spectral Density - High Frequencies')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Power')
+
+plt.tight_layout()
+plt.show()
+
+power_low = power[low_band_indices]
+power_mid = power[mid_band_indices]
+power_high = power[high_band_indices]
+
+plt.figure(figsize=(10, 5))
+
+# Plot for low frequencies
+plt.plot(frequencies[low_band_indices], power_low, label='Low Frequencies')
+
+# Plot for mid frequencies
+plt.plot(frequencies[mid_band_indices], power_mid, label='Mid Frequencies')
+
+# Plot for high frequencies
+plt.plot(frequencies[high_band_indices], power_high, label='High Frequencies')
+
+
+plt.title('Power Spectral Density')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Power')
+plt.legend()
+plt.grid(True)
+
+plt.xlim(0, 3500)
+
 plt.show()
 
